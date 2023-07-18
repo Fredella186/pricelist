@@ -1,0 +1,233 @@
+<?php
+    // panggil file koneksi.php
+    require 'connect.php';
+
+    // buat koneksi ke database mysql
+    buka_koneksi();
+
+    // tangkap variabel kd_mhs
+    $id_pl = $_POST['id_pl'];
+    // query untuk menampilkan mahasiswa berdasarkan kd_mhs
+    $data = mysql_fetch_array(mysql_query("
+    SELECT * FROM tb_pricelist WHERE id_pricelist = '".$id_pl."'"
+    ));
+
+    // jika prod_code > 0 / form ubah data
+    if($id_pl > 0) {
+        $gambar_prod    = $data['gambar_produk'];
+        $ktg_prod       = $data['ktg_produk'];
+        $judul_prod     = $data['judul_produk'];
+        $deskripsi_prod = $data['deskripsi_produk'];
+        $harga_prod     = $data['harga'];
+        $harga_10_prod  = $data['harga_10'];
+        $berat_prod     = $data['berat_produk'];
+        $link_prod      = $data['link_produk'];
+        $kode_prod      = $data['kode_produk'];
+        //~ $id_pl          = $data['id_pricelist'];
+
+    //form tambah data
+    } else {
+        $rentang_qty    = "";
+        $harga_grosir   = "";
+        $gambar_prod    = "";
+        $ktg_prod       = "";
+        $judul_prod     = "";
+        $deskripsi_prod = "";
+        $harga_prod     = "";
+        $harga_10_prod  = "";
+        $berat_prod     = "";
+        $link_prod     = "";
+        $kode_prod      = "";
+        $id_pl          = "";
+    }
+
+?>
+<form class="form-horizontal" method="POST" action="#" enctype="multipart/form-data" id="form-pricelist">
+    <div class="form-group">
+      <label for="inputGbrProd" class="col-sm-2 control-label">Gambar Produk</label>
+      <div class="col-sm-6">
+        <input type="hidden" class="form-control input-sm" name="id_pricelist" id="id_pricelist" value="<?php echo $id_pl; ?>">
+        <?php
+            if($gambar_prod == ""){
+        ?>
+            <input type="file" class="form-control input-sm" name="gambar_prod" id="gambar_prod" />
+            <input type="hidden" name="gambar_text" id="gambar_text" />
+        	</div>
+      <div class="col-sm-4">
+        <input type="button" name="btnUpload" id="btnUpload" class="btn btn-primary btn-sm" value="Upload">
+      </div>
+        <?php } else { ?>
+            <img src="assets/images/<?php echo $gambar_prod; ?>" title="<?php echo $gambar_prod; ?>" style="width:70px; height:70px;" />
+            <input type="hidden" name="gambar_text" id="gambar_text" value="<?php echo $gambar_prod; ?>" />
+  			</div>
+        <?php } ?>
+      
+    </div>
+    <div class="form-group">
+      <label for="inputKtgProd" class="col-sm-2 control-label">Kategori Produk</label>
+      <div class="col-sm-10">
+        <select class="form-control" name="ktg_prod" id="ktg_prod">
+            <?php
+                if($ktg_prod != ""){
+                    $dataKtg = mysql_fetch_array(mysql_query("SELECT * FROM tb_kategori WHERE id_ktg = '".$ktg_prod."'"));
+                    echo "<option value='".$dataKtg['id_ktg']."' selected>".$dataKtg['nama_ktg']."</option>";
+                } else {echo "<option value='0' selected>--- Pilih Kategori ---</option>";}
+
+                $Qktg = mysql_query("SELECT * FROM tb_kategori");
+                while($rowKtg = mysql_fetch_array($Qktg)){
+                    echo "<option value='".$rowKtg['id_ktg']."'>".$rowKtg['nama_ktg']."</option>";
+                }
+            ?>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputKodeProd" class="col-sm-2 control-label">SKU</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control input-sm" name="kode_prod" id="kode_prod" value="<?php echo $kode_prod; ?>" placeholder="SKU" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputJudulProd" class="col-sm-2 control-label">Judul Produk</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control input-sm" name="judul_prod" id="judul_prod" value="<?php echo $judul_prod; ?>" placeholder="Judul Produk">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="txtDeskripsiProd" class="col-sm-2 control-label">Deskripsi Produk</label>
+      <div class="col-sm-10">
+        <textarea name="deskripsi_prod" id="deskripsi_prod" class="form-control input-sm" rows="5" placeholder="Deskripsi Produk"><?php echo $deskripsi_prod; ?></textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputHargaProd" class="col-sm-2 control-label">Harga Produk</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control input-sm" name="harga_prod" id="harga_prod" value="<?php echo $harga_prod; ?>" placeholder="Harga Produk">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputHargaProd" class="col-sm-2 control-label">Input Harga Tingkat</label>
+      <div class="col-sm-10">
+        <table id="harga_tingkat" class="table table-bordered">
+            <tr class="warning">
+                <th style="text-align:center;"><input type="checkbox" class="input-sm" id="cb_all" onclick="cekSemua();" /></th>
+                <th style="text-align:center;">Qty</th>
+                <th style="text-align:center;">Harga</th>
+            </tr>
+            <?php
+                $jml = 0;
+                if($id_pl > 0){
+                    $qGrosir = mysql_query("SELECT * FROM tb_wholesale WHERE id_produk = '".$kode_prod."'");
+                    $jml = mysql_num_rows($qGrosir);
+                    $i = 1;
+                    while($grosir = mysql_fetch_array($qGrosir)){
+                    $rentang_qty  = $grosir['rentang_qty'];
+                    $harga_grosir = $grosir['harga_wholesale'];
+
+            ?>
+            <tr>
+                <td><input type="checkbox" class="cbHPP input-sm" id="cbHPP" name="cbHT" />
+                <input type="hidden" name="nmr_<?php echo $i; ?>" id="nmr_<?php echo $i; ?>" value="<?php echo $i; ?>" /></td>
+                <td><input type="text" class="form-control input-sm" name="qty_<?php echo $i; ?>" id="qty" value="<?php echo $rentang_qty; ?>" placeholder="Qty"></td>
+                <td><input type="text" class="form-control input-sm" name="hrg_<?php echo $i; ?>" id="hrg" value="<?php echo $harga_grosir; ?>" placeholder="Harga"></td>
+            </tr>
+            <?php $i++; }}?>
+        </table>
+        <div class="pull-right">
+            <a href="#" class="btnAddHT btn btn-info btn-sm" id="btnAddHT"><i class="glyphicon glyphicon-plus"></i></a>
+            <a href="#" class="btnDelHT btn btn-danger btn-sm" id="btnDelHT"><i class="glyphicon glyphicon-minus"></i></a>
+        </div>
+    </div>
+    <div class="form-group">
+      <label for="inputHarga10Prod" class="col-sm-2 control-label">Harga 10%</label>
+      <div class="col-sm-10">
+        <input type="checkbox" class="cek10"/> centang untuk menambahkan
+        <input type="text" class="form-control input-sm" name="harga_10_prod" id="harga_10_prod" value="<?php echo $harga_10_prod; ?>" placeholder="Harga 10% Produk" disabled />
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputBeratProd" class="col-sm-2 control-label">Berat Produk (Gr)</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control input-sm" name="berat_prod" id="berat_prod" value="<?php echo $berat_prod; ?>" placeholder="Berat Produk">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="inputLinkProd" class="col-sm-2 control-label">Link Produk</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control input-sm" name="link_prod" id="link_prod" value="<?php echo $link_prod; ?>" placeholder="Link Produk">
+      </div>
+    </div>
+</form>
+<script>
+
+    function cekSemua() {
+        $('.cbHPP').each(function(){
+            if($('#cb_all:checked').length == 0){
+                $(this).prop("checked", false);
+            } else {
+                $(this).prop("checked", true);
+            }
+        });
+    }
+
+    var id, nmr = <?php echo $jml; ?>;
+    if(nmr >= 1)
+        id = nmr;
+    else
+        id = 0;
+    $('.btnAddHT').on('click', function() {
+        id++;
+        //~ console.log(id);
+        var add_hpp = '<tr>' +
+                '<td><input type="checkbox" name="cbHT" class="cbHPP input-sm" id="cbHPP" /> ' +
+                '<input type="hidden" id="nmr_'+id+'" name="nmr_'+id+'" value="'+id+'" /></td>' +
+                '<td><input type="text" class="form-control input-sm" name="qty_'+id+'" id="qty_'+id+'" placeholder="Qty"></td>' +
+                '<td><input type="text" class="form-control input-sm" name="hrg_'+id+'" id="hrg_'+id+'" placeholder="Harga"></td></tr>';
+        $('#harga_tingkat').append(add_hpp);
+    });
+
+    $('.btnDelHT').on('click', function(){
+        $('.cbHPP:checked').parents("tr").remove();
+        id=0;
+    });
+
+    $('#btnUpload').on('click', function(){
+        var file = $('#gambar_prod')[0].files[0];
+
+        var form_data = new FormData();
+        form_data.append('file', file);
+
+        $.ajax({
+            url : 'upload.php',
+            type : 'POST',
+            cache : false,
+            data : form_data,
+            processData : false,
+            contentType : false,
+            dataType : 'text',
+            success : function(data){
+                //console.log(data);
+                switch(data){
+                    case 'success' : alert("Upload gambar produk berhasil.."); break;
+                    case 'error' : alert("Terjadi kesalahan pada file !"); break;
+                    case 'disallowed' : alert("File gambar produk harus JPG, JPEG, PNG !"); break;
+                    case 'large' : alert("File gambar produk terlalu besar.. ! Harus < 256 KB.."); break;
+                    default: console.log(data);
+                }
+            }
+        });
+
+    });
+    $('#gambar_prod').on('change', function (){
+        var a = this.files[0]['name'];
+        $('#gambar_text').val(a);
+    });
+
+    $('.cek10').change(function(){
+        if ($('.cek10').is(':checked') == true){
+            $('#harga_10_prod').prop('disabled', false);
+        } else {
+            $('#harga_10_prod').val('').prop('disabled', true);
+        }
+    });
+</script>

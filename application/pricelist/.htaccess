@@ -1,0 +1,5 @@
+Options +FollowSymLinks
+RewriteEngine On
+ 
+RewriteCond %{HTTPS} on
+RewriteRule (.*) http://%{HTTP_HOST}%{REQUEST_URI}

@@ -1,0 +1,66 @@
+/* Your app styles here */
+.navbar{
+    background: #2c3e50;
+    color:white;
+    font-family: 'Rokkitt', serif;
+    font-size: 30px;
+}
+
+.kategori-link{
+    color:white;
+    font-size: 25px;
+}
+
+.photo-browser-current{
+    display: none;
+}
+.photo-browser-of{
+    display: none;
+}
+.photo-browser-total{
+    display: none;
+}
+
+.list .item-subtitle{
+	white-space: normal !important;
+}
+
+.list .item-title {
+    white-space: normal !important;
+    /* overflow: auto !important; */
+	/* height: 50px !important; */
+}
+
+#htable{
+    background: #2c3e50;
+}
+
+p#judul_produk {
+    padding-left: 10px;
+    padding-right: 10px;
+    font-weight: 900;
+    margin: 1px;
+}
+
+button.button.button-fill {
+    width: 126px;
+    margin: 1px;
+}
+
+.list.media-list {
+    margin-top: -35px !important;
+}
+
+
+.col-33.kategori-item {
+    border: 1px solid gray;
+    margin: 5px;
+    min-height: 143px;
+    padding-top: 10px;
+    border-radius: 7px;
+}
+
+.links-list a:after, .list .item-inner:after, .simple-list li:after{
+	height : 3px;
+}
+

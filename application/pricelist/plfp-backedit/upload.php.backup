@@ -1,0 +1,27 @@
+<?php
+    $response = "";
+    $allowed = array("image/jpeg", "image/jpg", "image/png");
+    if ( 0 < $_FILES['file']['error'] ) {
+        //~ echo 'Error: ' . $_FILES['file']['error'] . '<br>';
+        $response = "error";
+    }
+    else if($_FILES['file']['size'] > 256000){
+        //~ $message = 'File too large ! File must be less than 500 Kb.';
+        //~ echo '<script type="text/javascript">alert("'.$message.'");</script>';
+        $response = "large";
+    }
+    else if(!in_array($_FILES['file']['type'], $allowed)){
+        $response = "disallowed";
+    }
+    else {
+        //var_dump($_FILES['file']['tmp_name']);
+        //var_dump($_FILES['file']['name']);
+        //var_dump($_FILES['file']['type']);
+        //var_dump($_FILES['file']['size']);
+      	$response = "success";
+        $storage = "assets/images/".$_FILES['file']['name'];
+        //var_dump($storage);
+        move_uploaded_file($_FILES['file']['tmp_name'], $storage);        
+    }
+
+    echo $response;
